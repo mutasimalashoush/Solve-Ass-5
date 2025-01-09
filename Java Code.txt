@@ -1,77 +1,92 @@
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+/*
+ * Modify code by adding button
+ */
 
-public class ButtonExample {
-    private static boolean isAnimating = true; // Controls animation state
+/**
+ * @author Mutasim Alashoush
+ */
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Random;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+@SuppressWarnings("serial")
+public class Game extends JPanel {
+
+    int x = 0; // Ball's x-coordinate
+    int y = 0; // Ball's y-coordinate
+
+    int min = 1; // Minimum range for random movement
+    int max = 500; // Maximum range for random movement
+    private boolean isAnimating = true; // Flag to control animation
+    private Thread animationThread; // Thread for ball animation
+
+    // Method to move the ball to a random position
+    private void moveBall() {
+        int rnX = new Random().nextInt(max - min + 1) + min;
+        int rnY = new Random().nextInt(max - min + 1) + min;
+
+        x = rnX; // Update ball's x-coordinate
+        y = rnY; // Update ball's y-coordinate
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.fillOval(x, y, 30, 30); // Draw the ball
+    }
 
     public static void main(String[] args) {
-        JFrame f = new JFrame("Button Example with Animation Control");
-        final JTextField tf = new JTextField();
-        tf.setBounds(50, 50, 200, 20);
+        JFrame frame = new JFrame("Ball Animation with Control"); // Create a new JFrame
+        Game game = new Game(); // Create an instance of the Game class
+        frame.add(game); // Add the game panel to the frame
+        frame.setSize(400, 400); // Set the frame size
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Set default close operation
+        frame.setLayout(null); // Use absolute layout
 
-        JButton messageButton = new JButton("Click Here");
-        messageButton.setBounds(50, 100, 120, 30);
-        messageButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                tf.setText("Welcome to Javatpoint.");
-            }
-        });
+        // Add the game panel
+        game.setBounds(0, 0, 400, 300);
 
+        // Button to control animation
         JButton controlButton = new JButton("Stop Animation");
-        controlButton.setBounds(200, 100, 150, 30);
+        controlButton.setBounds(150, 310, 150, 30); // Set button position and size
+        frame.add(controlButton); // Add the button to the frame
 
-        // Panel for animation
-        JPanel animationPanel = new JPanel() {
-            private int x = 0;
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.setColor(Color.RED);
-                g.fillOval(x, 50, 30, 30); // Draw a moving circle
-            }
-
-            public void animate() {
-                x += 10;
-                if (x > getWidth()) x = 0;
-                repaint();
-            }
-        };
-
-        animationPanel.setBounds(50, 150, 300, 200);
-        animationPanel.setBackground(Color.LIGHT_GRAY);
-
-        // Thread for animation
-        Thread animationThread = new Thread(() -> {
+        // Animation thread
+        game.animationThread = new Thread(() -> {
             while (true) {
-                if (isAnimating) {
-                    animationPanel.animate();
+                if (game.isAnimating) { // Check if animation is enabled
+                    game.moveBall(); // Move the ball to a new random position
+                    game.repaint(); // Repaint the panel to update the ball's position
                 }
                 try {
-                    Thread.sleep(100); // Adjust speed of animation
+                    Thread.sleep(500); // Delay for smooth animation
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         });
 
-        animationThread.start();
+        game.animationThread.start(); // Start the animation thread
 
+        // Add action listener for the button
         controlButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-                isAnimating = !isAnimating;
-                controlButton.setText(isAnimating ? "Stop Animation" : "Continue Animation");
+                game.isAnimating = !game.isAnimating; // Toggle animation state
+                controlButton.setText(game.isAnimating ? "Stop Animation" : "Continue Animation");
             }
         });
 
-        f.add(messageButton);
-        f.add(controlButton);
-        f.add(animationPanel);
-        f.add(tf);
-        f.setSize(400, 400);
-        f.setLayout(null);
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.setVisible(true);
+        frame.setVisible(true); // Make the frame visible
     }
 }
